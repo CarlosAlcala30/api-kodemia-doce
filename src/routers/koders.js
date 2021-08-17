@@ -1,8 +1,9 @@
 const express = require("express");
 const koders = require("../usecases/koders");
 const router = express.Router();
+const isAuth = require("../middleware/auth");
 
-router.get("/",async (request,response)=>{
+router.get("/",isAuth ,async (request,response)=>{
     try {
         const allKoders = await koders.getAll();
         response.json({
@@ -42,14 +43,15 @@ router.post("/",async (request,response)=>{
 
 });
 
-router.delete("/",async (request,response)=>{
+router.delete("/:id",isAuth ,async (request,response)=>{
     try {
-        const koder = await koders.deleteOne(request.body);
+        const idKoder = request.params.id;
+        const koderDeleted = await koders.deleteById(idKoder);
         response.status(200).json({
             success: true,
             message: "Deleted",
             data:{
-                koders: koder
+                koders: koderDeleted
             }
         });
     } catch (error) {
@@ -62,5 +64,26 @@ router.delete("/",async (request,response)=>{
 
 });
 
+router.patch("/:id",isAuth ,async (request,response)=>{
+    try {
+        const { id } = request.params;
+        const { body } = request;
+        const koder = await koders.updateById(id,body);
+        response.status(200).json({
+            success: true,
+            message: "Updated",
+            data:{
+                koders: koder
+            }
+        });
+    } catch (error) {
+        response.json({
+            success: false,
+            message: "Error at update koder",
+            error:error.message
+        });
+    }
+
+});
 
 module.exports = router;
